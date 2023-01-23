@@ -19,23 +19,24 @@ private:
 
     bool lineInvalid(const char *line) const;
 
+    class GCClass {
+    public:
+        ~GCClass() {
+            if (Config::m_instance) {
+                delete Config::m_instance;
+                Config::m_instance = nullptr;
+            }
+        }
+    };
+
 public:
-//    class GCClass {
-//    public:
-//        ~GCClass() {
-//            if (Config::m_instance) {
-//                delete Config::m_instance;
-//                Config::m_instance = nullptr;
-//            }
-//        }
-//    };
 
     ~Config();
 
     static Config *getInstance() {
         if (m_instance == nullptr) {
             m_instance = new Config{};
-//            static GCClass gc;
+            static GCClass gc; // 这里必须这么写，否则存在内存泄漏，因为m_instance这段内存无法释放, 除非程序结尾手动delete
         }
         return m_instance;
     }
