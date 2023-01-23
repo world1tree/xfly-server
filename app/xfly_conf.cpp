@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
-#include "../_include/xfly_conf.h"
+#include "xfly_conf.h"
 #include "xfly_func.h"
 
 Config::Config() {}

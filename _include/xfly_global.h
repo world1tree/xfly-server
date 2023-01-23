@@ -11,4 +11,5 @@ typedef struct {
     char ItemContent[501]{};
 }ConfigItem, *PConfigItem;
 
+
 #endif //XFLY_XFLY_GLOBAL_H

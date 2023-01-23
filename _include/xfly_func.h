@@ -7,5 +7,4 @@
 
 void lStrip(char* str);
 void rStrip(char* str);
-
 #endif //XFLY_XFLY_FUNC_H
