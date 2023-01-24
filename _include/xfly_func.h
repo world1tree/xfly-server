@@ -7,4 +7,7 @@
 
 void lStrip(char* str);
 void rStrip(char* str);
+bool initSignals();
+[[noreturn]] void masterProcessCycle();
+int createDaemon();
 #endif //XFLY_XFLY_FUNC_H

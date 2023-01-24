@@ -4,4 +4,8 @@ add_executable(${PROJECT_NAME}_bin ${sources})
 target_link_libraries(${PROJECT_NAME}_bin ${PROJECT_NAME}_log_lib)
 # 生成.lib文件，可以链接到其它程序中, 这样就不需要显示指定具体的实现文件(.cpp文件)
 add_library(${PROJECT_NAME}_app_lib STATIC ${sources})
-#target_link_libraries(${PROJECT_NAME}_bin ${PROJECT_NAME}_log_lib)
+target_link_libraries(${PROJECT_NAME}_bin
+        ${PROJECT_NAME}_log_lib
+        ${PROJECT_NAME}_signal_lib
+        ${PROJECT_NAME}_proc_lib
+        )

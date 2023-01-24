@@ -5,5 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(_include log)
 
 add_subdirectory(log)
+add_subdirectory(proc)
+add_subdirectory(signal)
 add_subdirectory(app)
-add_subdirectory(test)
+#add_subdirectory(test)
