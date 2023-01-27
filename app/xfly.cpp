@@ -8,12 +8,14 @@
 #include "fmtlog.h"
 #include "xfly_conf.h"
 #include "xfly_func.h"
+#include "xfly_socket.h"
 //#include "xfly_global.h"
 
 void initLog();
 void freeSource();
 ProcessType processType; // 标记进程类型
 sig_atomic_t invalidProcess;
+CSocket g_socket;
 
 int main() {
   // 读取配置文件
@@ -27,6 +29,9 @@ int main() {
   initLog();
   // 初始化信号处理函数
   if (!initSignals())
+    exit(1);
+  // 初始化socket
+  if (!g_socket.Initialize())
     exit(1);
   // 设置守护进程
   int daemon = conf->getIntDefault("Daemon", 0);

@@ -6,6 +6,7 @@
 #define XFLY_XFLY_GLOBAL_H
 
 #include "signal.h"
+#include "xfly_socket.h"
 
 // 定义配置项数据结构
 typedef struct {
@@ -20,4 +21,5 @@ enum class ProcessType {
 
 extern ProcessType processType;
 extern sig_atomic_t invalidProcess;
+extern CSocket g_socket;
 #endif //XFLY_XFLY_GLOBAL_H

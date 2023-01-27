@@ -10,4 +10,5 @@ void rStrip(char* str);
 bool initSignals();
 [[noreturn]] void masterProcessCycle();
 int createDaemon();
+void xfly_process_events_and_timer();
 #endif //XFLY_XFLY_FUNC_H

@@ -75,11 +75,11 @@ static bool spawnProcess(int id) {
   sigemptyset(&set);
   processType = ProcessType::workerprocess;
   // 恢复这个子进程的信号集, 该子进程可以正常接收信号
-  if (sigprocmask(SIG_SETMASK, &set, NULL) == -1)
+  if (sigprocmask(SIG_SETMASK, &set, nullptr) == -1)
     logw("sigprocmask失败.");
+  // 初始化epoll相关内容，同时往监听socket上增加监听事件，从而开始让监听端口履行其职责(当三次握手进入的时候，系统能够通知我)
+  g_socket.epoll_init();
   for (;;) {
-//    logi("这是子进程, pid={}.", getpid());
-//    fmtlog::poll();
-    sleep(1);
+    xfly_process_events_and_timer();  // 处理网络事件和定时器事件
   }
 }
