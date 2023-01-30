@@ -9,4 +9,5 @@ target_link_libraries(${PROJECT_NAME}_bin
         ${PROJECT_NAME}_signal_lib
         ${PROJECT_NAME}_proc_lib
         ${PROJECT_NAME}_net_lib
+        ${PROJECT_NAME}_misc_lib
         )

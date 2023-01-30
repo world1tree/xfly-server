@@ -4,6 +4,7 @@ project(xfly)
 set(CMAKE_CXX_STANDARD 20)
 include_directories(_include log)
 
+add_subdirectory(misc)
 add_subdirectory(log)
 add_subdirectory(proc)
 add_subdirectory(net)

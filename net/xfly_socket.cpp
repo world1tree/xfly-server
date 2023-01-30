@@ -3,13 +3,14 @@
 //
 
 #include "xfly_socket.h"
-#include "xfly_conf.h"
 #include "fmtlog.h"
+#include "xfly_conf.h"
+#include "xfly_memory.h"
 #include <arpa/inet.h>
 #include <cstring>
 #include <ranges>
-#include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
 CSocket::CSocket() {
   // 配置相关
   m_worker_connections = 1;
@@ -19,6 +20,9 @@ CSocket::CSocket() {
   m_epollhandle = -1;     // epoll返回的句柄
   m_pconnections = nullptr; // 连接池[连接数组]初始为空
   m_pfree_connections = nullptr;
+
+  m_iLenPkgHeader = sizeof(COMM_PKG_HEADER);
+  m_iLenMsgHeader = sizeof(STRUC_MSG_HEADER);
 }
 CSocket::~CSocket() {
   // 释放监听端口相关内存
@@ -28,6 +32,18 @@ CSocket::~CSocket() {
   // 连接池相关内存
   if (m_pconnections)
     delete [] m_pconnections;
+  // 清空消息队列
+  clearMsgRecvQueue();
+}
+void CSocket::clearMsgRecvQueue() {
+  char* tmpMempoint;
+  Memory* p_memory = Memory::getInstance();
+  // 有线程池就需要考虑临界问题
+  while (!m_MsgRecvQueue.empty()) {
+    tmpMempoint = m_MsgRecvQueue.front();
+    m_MsgRecvQueue.pop_front();
+    p_memory->FreeMemory(tmpMempoint);
+  }
 }
 bool CSocket::Initialize() {
   readConf();
@@ -260,7 +276,7 @@ int CSocket::epoll_process_event(int timer) {
     }
     // 读事件(三次握手进来, 实际执行event_accept, 因为之前rhandler已经设置了)
     if (revents & EPOLLIN) {
-      // 调用类的成员函数
+      // 调用类的成员函数, 最终处理的还是连接这个数据结构
       (this->*(c->rhandler))(c);
     }
     // 写事件

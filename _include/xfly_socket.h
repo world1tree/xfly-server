@@ -6,8 +6,10 @@
 #define XFLY_XFLY_SOCKET_H
 
 #include <vector>
+#include <list>
 #include "sys/epoll.h"
 #include "sys/socket.h"
+#include "xfly_comm.h"
 
 #define XFLY_LISTEN_BACKLOG 511   // 以完成队列最大连接数
 #define XFLY_MAX_EVENTS 512           // epoll_wait一次最多接收这么多个事件
@@ -43,8 +45,23 @@ struct connection_s{
   event_handler_pt rhandler; //读事件相关处理方法
   event_handler_pt whandler; //写事件相关处理方法
 
+  // 和收包有关
+  unsigned char curStat;     // 当前收包状态
+  char dataHeadInfo[_DATA_BUFSIZE_];   // 保存收到的包头信息
+  char *precvbuf;                      // 接受数据缓冲区的头指针，对收到不全的包非常有用
+  unsigned int irecvlen;               // 要收到多少数据，由这个变量指定，和precvbuf配套使用
+
+  bool ifnewrecvMem;                   // 如果我们成功收到包头，那么需要分配内存开始保存消息头+包头+包体, 这个标记用来标记是否new过内存，new过需要释放
+  char *pnewMemPointer;                // new出来的用于收包的内存首地址，和ifnewrecvMem配对使用
+
   lpconnection_t data;       // 用于把空闲的连接池对象串起来构成一个单向链表
 };
+
+// 消息头
+typedef struct {
+  lpconnection_t pConn;
+  uint64_t iCurrsequence;
+}STRUC_MSG_HEADER, *LPSTRUC_MSG_HEADER;
 
 
 class CSocket {
@@ -61,10 +78,19 @@ private:
   bool open_listening_sockets();                          // 监听必须的端口
   void close_listening_sockets();                         // 关闭监听套接字
   bool setnonblocking(int sockfd);                        // 设置非阻塞套接字
+
   // 一些业务处理函数handler
   void event_accept(lpconnection_t oldc);                 // 建立新连接
   void wait_request_handler(lpconnection_t c);            // 设置数据来时的读处理函数
-  void close_accepted_connection(lpconnection_t c);       // 用户连入, accept4()时，得到的socket在处理中产生失败，则资源用这个函数释放
+  void close_connection(lpconnection_t c);       // 用户连入, accept4()时，得到的socket在处理中产生失败，则资源用这个函数释放
+
+  ssize_t recvproc(lpconnection_t c, char* buff, ssize_t bufflen);    // 接收从数据端来的数据专用函数
+  void wait_request_handler_proc_p1(lpconnection_t c);           // 包头收完整后的处理，称为包处理阶段1
+
+  void wait_request_handler_proc_plast(lpconnection_t c);        // 收到一个完整包后的处理，放到一个函数中，方便调用
+  void inMsgRecvQueue(char* buf);                             // 收到一个完整消息后，入消息队列
+  void tmpoutMsgRecvQueue();                                  // 临时清除队列中消息函数，测试用，将来会删除该函数
+  void clearMsgRecvQueue();                                   // 清理接收消息队列
 
   // 获取对端信息
   size_t sock_ntop(struct sockaddr* sa, int port, u_char* text, size_t len); // 根据参数1给定的信息，获取地址端口字符串，返回这个字符串的长度
@@ -87,6 +113,11 @@ private:
   std::vector<lplistening_t> m_listenSocketList;          // 监听的套接字队列
 
   struct epoll_event m_events[XFLY_MAX_EVENTS];                // 用于在epoll_wait()中承载返回的发生事件
+
+  // 和网络通讯有关的成员变量
+  size_t m_iLenPkgHeader;
+  size_t m_iLenMsgHeader;
+  std::list<char*> m_MsgRecvQueue;
 
 };
 

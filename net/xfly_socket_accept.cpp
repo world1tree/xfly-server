@@ -88,7 +88,7 @@ void CSocket::event_accept(lpconnection_t oldc) {
       // 如果不是用accept4取得的socket, 那么就要设置为非阻塞
       if (!setnonblocking(s)) {
         loge("setnonblocking failed.");
-        close_accepted_connection(newc);
+        close_connection(newc);
         return;
       }
     }
@@ -103,20 +103,13 @@ void CSocket::event_accept(lpconnection_t oldc) {
     if (epoll_add_event(s,                   // socket句柄
                         1,                   // 读
                         0,                   // 写
-                        EPOLLET,             // 其它补充标记(EPOLLET(边缘触发)
+//                        EPOLLET,             // 其它补充标记(EPOLLET(边缘触发)
+                        0,
                         EPOLL_CTL_ADD,       // 事件类型(增加/删除/修改)
                         newc) == -1){         // 连接池中的连接
-      close_accepted_connection(newc);
+      close_connection(newc);
     }
     break;  // 一般就执行一次
   }
 }
 // 用户连入，accept4时，得到的socket在处理中产生失败，则资源用这个函数释放
-void CSocket::close_accepted_connection(lpconnection_t c) {
-  // 回收连接池中连接，关闭socket
-  int fd = c->fd;
-  free_connection(c);
-  c->fd = -1;     // 官方nginx这么写的，这么写有意义
-  if (close(fd) == -1)
-    loge("close_accepted_connection error.");
-}
